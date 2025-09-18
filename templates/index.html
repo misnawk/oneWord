@@ -56,11 +56,103 @@
                         {% endif %}
                     </div>
                 {% elif selected_category == '날씨' %}
-                    {# 날씨: / 또는 \n 기준으로 시간대별 줄바꿈 #}
-                    <div style="text-align:left;">
-                        {% for line in result.replace('/', '\n').split('\n') %}
-                            <div>{{ line.strip() }}</div>
+                    {# 날씨: 구조화된 카드 레이아웃 #}
+                    <div class="weather-container">
+                        {% set weather_lines = result.split('\n') %}
+                        {% set current_section = '' %}
+                        {% set in_current_weather = false %}
+                        {% set in_forecast = false %}
+                        {% set in_tips = false %}
+                        
+                        {% for line in weather_lines %}
+                            {% set clean_line = line.strip() %}
+                            {% if clean_line %}
+                                {% if '날씨 정보' in clean_line %}
+                                    <div class="weather-header">
+                                        <h3>{{ clean_line }}</h3>
+                                    </div>
+                                {% elif '📍' in clean_line and '특별시' in clean_line or '광역시' in clean_line or '도' in clean_line %}
+                                    <div class="weather-location">{{ clean_line }}</div>
+                                {% elif '🕐 현재 날씨' in clean_line %}
+                                    {% set in_current_weather = true %}
+                                    <div class="weather-current">
+                                        <div class="weather-section-title">{{ clean_line }}</div>
+                                {% elif '┌─────────────────────┐' in clean_line %}
+                                    <div class="weather-card">
+                                {% elif '│' in clean_line and in_current_weather %}
+                                    {% if '☀️' in clean_line or '🌧️' in clean_line or '☁️' in clean_line or '⛅' in clean_line or '❄️' in clean_line or '⛈️' in clean_line or '🌨️' in clean_line or '🌤️' in clean_line %}
+                                        <div class="weather-status">{{ clean_line.replace('│', '').strip() }}</div>
+                                    {% elif '🌡️' in clean_line %}
+                                        <div class="weather-temp">{{ clean_line.replace('│', '').strip() }}</div>
+                                    {% elif '💧' in clean_line %}
+                                        <div class="weather-humidity">{{ clean_line.replace('│', '').strip() }}</div>
+                                    {% elif '💨' in clean_line %}
+                                        <div class="weather-wind">{{ clean_line.replace('│', '').strip() }}</div>
+                                    {% elif '🌧️' in clean_line and 'mm' in clean_line %}
+                                        <div class="weather-rain">{{ clean_line.replace('│', '').strip() }}</div>
+                                    {% endif %}
+                                {% elif '└─────────────────────┘' in clean_line %}
+                                    </div>
+                                    {% set in_current_weather = false %}
+                                    </div>
+                                {% elif '📅 오늘의 예보' in clean_line %}
+                                    {% set in_forecast = true %}
+                                    <div class="weather-forecast">
+                                        <div class="weather-section-title">{{ clean_line }}</div>
+                                        <div class="forecast-grid">
+                                {% elif in_forecast and ('🌅' in clean_line or '☀️' in clean_line or '🌙' in clean_line) %}
+                                    {% set parts = clean_line.split('│') %}
+                                    <div class="forecast-item">
+                                        {% for part in parts %}
+                                            {% set clean_part = part.strip() %}
+                                            {% if clean_part %}
+                                                {% if '🌅' in clean_part or '☀️' in clean_part or '🌙' in clean_part %}
+                                                    <div class="forecast-time">{{ clean_part }}</div>
+                                                {% elif '☀️' in clean_part or '🌧️' in clean_part or '☁️' in clean_part or '⛅' in clean_part or '❄️' in clean_part or '⛈️' in clean_part or '🌨️' in clean_part or '🌤️' in clean_part %}
+                                                    <div class="forecast-weather">{{ clean_part }}</div>
+                                                {% elif '🌡️' in clean_part %}
+                                                    <div class="forecast-temp">{{ clean_part }}</div>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% elif '💡 날씨 팁' in clean_line %}
+                                    {% if in_forecast %}
+                                        </div>
+                                        </div>
+                                        {% set in_forecast = false %}
+                                    {% endif %}
+                                    {% set in_tips = true %}
+                                    <div class="weather-tips">
+                                        <div class="weather-section-title">{{ clean_line }}</div>
+                                {% elif in_tips and ('☂️' in clean_line or '😎' in clean_line or '☁️' in clean_line or '💨' in clean_line) %}
+                                    <div class="tip-item">{{ clean_line.strip() }}</div>
+                                {% elif '📊 한국기상청' in clean_line %}
+                                    {% if in_tips %}
+                                        </div>
+                                        {% set in_tips = false %}
+                                    {% endif %}
+                                    {% if in_forecast %}
+                                        </div>
+                                        </div>
+                                        {% set in_forecast = false %}
+                                    {% endif %}
+                                    <div class="weather-footer">{{ clean_line }}</div>
+                                {% elif clean_line != '─────────────────────────' and clean_line != '=========================' %}
+                                    {% if not in_current_weather and not in_forecast and not in_tips %}
+                                        <div class="weather-info">{{ clean_line }}</div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
                         {% endfor %}
+                        
+                        {% if in_tips %}
+                            </div>
+                        {% endif %}
+                        {% if in_forecast %}
+                            </div>
+                            </div>
+                        {% endif %}
                     </div>
                 {% else %}
                     {{ result|replace('\n', '<br>')|safe }}

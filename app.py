@@ -231,10 +231,11 @@ def get_kma_weather_direct(location):
                 hourly_data[fcst_time] = {}
             hourly_data[fcst_time][category] = fcst_value
         
-        # 모바일 친화적 포맷팅
-        result = f"📍 {city_name}\n\n"
+        # 개선된 날씨 정보 포맷팅 (UI 최적화)
+        result = f"🌤️ 날씨 정보\n"
+        result += f"📍 {city_name}\n\n"
         
-        # 현재 날씨 (간결하게)
+        # 현재 날씨 (더 상세하고 보기 좋게)
         current_hour = now.strftime('%H00')
         if current_hour in hourly_data:
             current_data = hourly_data[current_hour]
@@ -242,27 +243,39 @@ def get_kma_weather_direct(location):
             sky = current_data.get('SKY', '1')
             pty = current_data.get('PTY', '0')
             humidity = current_data.get('REH', 'N/A')
+            wind_speed = current_data.get('WSD', 'N/A')
+            rainfall = current_data.get('RN1', '0')
+            
             weather_emoji, weather_desc = get_kma_weather_status(sky, pty)
             
-            result += f"🕐 지금: {weather_emoji} {weather_desc}"
+            result += f"🕐 현재 날씨 ({now.strftime('%H:%M')})\n"
+            result += f"┌─────────────────────┐\n"
+            result += f"│ {weather_emoji} {weather_desc:^15} │\n"
+            
             if temp != 'N/A':
-                result += f" {temp}°C"
+                result += f"│ 🌡️  온도: {temp:>8}°C │\n"
             if humidity != 'N/A':
-                result += f" ({humidity}%)"
-            result += "\n\n"
+                result += f"│ 💧  습도: {humidity:>8}% │\n"
+            if wind_speed != 'N/A':
+                result += f"│ 💨  바람: {wind_speed:>7}m/s │\n"
+            if rainfall != '0' and rainfall != 'N/A':
+                result += f"│ 🌧️  강수: {rainfall:>8}mm │\n"
+            
+            result += f"└─────────────────────┘\n\n"
         
-        # 시간대별 예보 (더 짧게)
+        # 시간대별 예보 (카드 형태로 개선)
         target_times = [
-            ('0900', '🌅 오전'),
-            ('1500', '☀️ 오후'),
-            ('2100', '🌙 저녁')
+            ('0900', '🌅', '오전'),
+            ('1500', '☀️', '오후'),
+            ('2100', '🌙', '저녁')
         ]
         
         forecast_found = False
-        for time_code, time_label in target_times:
+        forecast_data = []
+        
+        for time_code, time_emoji, time_label in target_times:
             if time_code in hourly_data:
                 if not forecast_found:
-                    result += "📅 예보\n"
                     forecast_found = True
                     
                 time_data = hourly_data[time_code]
@@ -272,27 +285,52 @@ def get_kma_weather_direct(location):
                 
                 weather_emoji, weather_desc = get_kma_weather_status(sky, pty)
                 
-                result += f"{time_label}: {weather_emoji} {weather_desc}"
-                if temp != 'N/A':
-                    result += f" {temp}°C"
-                result += "\n"
+                forecast_data.append({
+                    'time_emoji': time_emoji,
+                    'time_label': time_label,
+                    'weather_emoji': weather_emoji,
+                    'weather_desc': weather_desc,
+                    'temp': temp
+                })
         
-        # 추가 정보 (선택적)
+        if forecast_data:
+            result += f"📅 오늘의 예보\n"
+            
+            for forecast in forecast_data:
+                result += f"{forecast['time_emoji']} {forecast['time_label']:^4} │ "
+                result += f"{forecast['weather_emoji']} {forecast['weather_desc']:^6} │ "
+                if forecast['temp'] != 'N/A':
+                    result += f"🌡️ {forecast['temp']:>3}°C"
+                result += "\n"
+            
+            result += f"\n"
+        
+        # 추가 정보 (더 보기 좋게)
         if current_hour in hourly_data:
             current_data = hourly_data[current_hour]
             wind_speed = current_data.get('WSD', 'N/A')
             rainfall = current_data.get('RN1', '0')
             
-            extras = []
-            if wind_speed != 'N/A':
-                extras.append(f"💨 {wind_speed}m/s")
+            # 날씨 팁 추가
+            tips = []
             if rainfall != '0' and rainfall != 'N/A':
-                extras.append(f"🌧️ {rainfall}mm")
+                tips.append("☂️ 우산을 챙기세요")
+            elif weather_desc in ['맑음']:
+                tips.append("😎 야외활동하기 좋은 날씨")
+            elif weather_desc in ['흐림', '구름많음']:
+                tips.append("☁️ 흐린 날씨, 실내활동 추천")
             
-            if extras:
-                result += f"\n{' | '.join(extras)}\n"
+            if wind_speed != 'N/A' and float(wind_speed) > 5:
+                tips.append("💨 바람이 강해요")
+            
+            if tips:
+                result += f"💡 날씨 팁\n"
+                for tip in tips:
+                    result += f"   {tip}\n"
+                result += "\n"
         
-        result += f"\n📊 기상청 ({base_date[4:6]}.{base_date[6:8]} {base_time[:2]}:{base_time[2:4]})"
+        # 업데이트 정보
+        result += f"📊 한국기상청 │ 업데이트: {base_date[4:6]}.{base_date[6:8]} {base_time[:2]}:{base_time[2:4]}"
         
         return result
         
