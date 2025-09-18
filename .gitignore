@@ -1,0 +1,133 @@
+# 환경 변수 파일 (API 키 보안)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Python 관련
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# 가상환경
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE 관련
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 운영체제 관련
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# 로그 파일
+*.log
+logs/
+
+# 임시 파일
+*.tmp
+*.temp
+.cache/
+
+# Flask 관련
+instance/
+.webassets-cache
+
+# 데이터베이스
+*.db
+*.sqlite
+*.sqlite3
+
+# 백업 파일
+*.bak
+*.backup
+
+# API 키 및 설정 파일
+config.py
+secrets.json
+credentials.json
+
+# 테스트 관련
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Node.js (향후 필요시)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# oneWord 프로젝트 특화 설정
+# API 응답 캐시 파일들
+api_cache/
+*.cache
+
+# 개발 중 생성되는 테스트 파일들
+test_*.py
+debug_*.py
+temp_*.py
+
+# 사용자 업로드 파일들 (향후 기능 확장시)
+uploads/
+user_data/
+
+# 프로덕션 설정 파일들
+production.py
+staging.py
+local_settings.py
+
+# SSL 인증서 (향후 HTTPS 적용시)
+*.pem
+*.key
+*.crt
+*.csr
+
+# 애플리케이션 로그
+app.log
+error.log
+access.log
+
+# 개발 도구 설정
+.env.example.backup
+requirements.txt.backup.env
